@@ -30,10 +30,6 @@ test_data = scaler.transform(data[-30:,:])
 
 model = tf.keras.models.load_model('model.keras')
 
-model.summary()
-
-np.array([test_data]).shape
-
 input_data = np.array([test_data])
 
 future_pred = []
