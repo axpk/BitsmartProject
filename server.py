@@ -18,12 +18,13 @@ def preprocess_data(today_date):
     end_date = datetime.strptime(today_date, '%Y-%m-%d') + timedelta(days=1)  # YF data exclusive, so today + 1
     data = yf.download('BTC-USD', start="2014-09-17", end=end_date.strftime('%Y-%m-%d'))
     data = data[['High', 'Low', 'Close']].values
+    last_closed_price = data[-1][2]
     scaler = MinMaxScaler()
     train_size = len(data) - 59
     scaler.fit(data[0:train_size, :])  # To keep consistent with scaler in training
     test_data = scaler.transform(data[-30:, :])
     input_data = np.array([test_data])
-    return input_data, scaler
+    return input_data, scaler, last_closed_price
 
 @app.route('/test', methods=['GET'])
 def test():
@@ -34,7 +35,7 @@ def predict():
     try:
         data = request.json
         today_date = data['date']
-        input_data, scaler = preprocess_data(today_date)
+        input_data, scaler, last_closed_price = preprocess_data(today_date)
         future_pred = []
 
         for i in range(0,7):
@@ -48,10 +49,48 @@ def predict():
         lowest_price_prediction = int(np.min(future_pred[:,1]))
         avg_closing_prediction = int(np.mean(future_pred[:,2]))
 
-        response = { # TODO - Add Swing Trading Strategy
+        print("Predicted prices for upcoming week from today:")
+        for i in range(len(future_pred)):
+            print(future_pred[i])
+
+        print("Last Closed Price: ", last_closed_price)
+        print("Calculating Swing Trading Strategy...")
+
+        highest_avg_date_index = np.argmax(future_pred[:, 2])
+        sell_date = None
+        load_date = None
+        sold_price = None
+
+        # Check to see if worth selling
+        if future_pred[highest_avg_date_index, 2] > last_closed_price:
+            sell_date = (datetime.today() + timedelta(days=highest_avg_date_index)).strftime('%Y-%m-%d')
+            sold_price = future_pred[highest_avg_date_index, 2]
+        else:
+            sell_date = "NA"
+
+        # If sold, check to see if worth re-buying this week
+        if sell_date and sell_date != 'NA' and sold_price:
+            lowest_avg_date_index = np.argmin(future_pred[:, 2])
+            if future_pred[lowest_avg_date_index, 2] < sold_price:
+                load_date = (datetime.today() + timedelta(days=lowest_avg_date_index)).strftime('%Y-%m-%d')
+            else:
+                load_date = "NA"
+
+
+        # If sell_date was never set
+        if not sell_date:
+            sell_date = "NA"
+
+        # If load_date was never set
+        if not load_date:
+            load_date = "NA"
+
+        response = {
             'highest_price': highest_price_prediction,
             'lowest_price': lowest_price_prediction,
-            'avg_closing_price': avg_closing_prediction
+            'avg_closing_price': avg_closing_prediction,
+            'sell_date': sell_date,
+            'load_date': load_date
         }
 
         return jsonify(response)
