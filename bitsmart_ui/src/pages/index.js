@@ -66,11 +66,19 @@ export default function Home() {
         <br />
 
         {prediction && result && (
-          <div>
-            <p>Highest Price: {result.highest_price}</p>
-            <p>Lowest Price: {result.lowest_price}</p>
-            <p>Average Closing Price: {result.avg_closing_price}</p>
-          </div>
+          <>
+            <div>
+              <h2 style={{ marginBottom: "0.25em" }}>Predicted prices (in USD) for next seven days are:</h2>
+              <p>Highest Price: {result.highest_price}</p>
+              <p>Lowest Price: {result.lowest_price}</p>
+              <p>Average Closing Price: {result.avg_closing_price}</p>
+            </div>
+            <div>
+              <h2 style={{ marginBottom: "0.25em" }}>Recommended swing trading strategy:</h2>
+              <p>Sell All: {result.sell_date}</p>
+              <p>All In: {result.load_date}</p>
+            </div>
+          </>
         )}
       </main>
     </>
