@@ -59,23 +59,23 @@ def predict():
         highest_avg_date_index = np.argmax(future_pred[:, 2])
         sell_date = None
         load_date = None
-        sold_price = None
+        sold_index = 0
 
         # Check to see if worth selling
         if future_pred[highest_avg_date_index, 2] > last_closed_price:
-            sell_date = (datetime.today() + timedelta(days=highest_avg_date_index)).strftime('%Y-%m-%d')
-            sold_price = future_pred[highest_avg_date_index, 2]
+            sell_date = (datetime.today() + timedelta(days=int(highest_avg_date_index))).strftime('%Y-%m-%d')
+            sold_index = highest_avg_date_index
         else:
-            sell_date = "NA"
+            # sell_date = "NA" # hold if today's price is highest
+            sell_date = (datetime.today()).strftime('%Y-%m-%d') # sell if today's price is highest
 
         # If sold, check to see if worth re-buying this week
-        if sell_date and sell_date != 'NA' and sold_price:
-            lowest_avg_date_index = np.argmin(future_pred[:, 2])
-            if future_pred[lowest_avg_date_index, 2] < sold_price:
-                load_date = (datetime.today() + timedelta(days=lowest_avg_date_index)).strftime('%Y-%m-%d')
-            else:
+        if sell_date and sell_date != 'NA':
+            if sold_index >= 6:
                 load_date = "NA"
-
+            else:
+                lowest_avg_date_index = np.argmin(future_pred[sold_index:, 2])
+                load_date = (datetime.today() + timedelta(days=int(lowest_avg_date_index))).strftime('%Y-%m-%d')
 
         # If sell_date was never set
         if not sell_date:
