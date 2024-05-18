@@ -4,12 +4,14 @@ import tensorflow as tf
 import numpy as np
 import yfinance as yf
 from sklearn.preprocessing import MinMaxScaler
+from flask_cors import CORS
 
 print(f"Tensorflow version: {tf.__version__}")
 
 
 model = tf.keras.models.load_model('model.keras')
 app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 
 def preprocess_data(today_date):
@@ -23,6 +25,9 @@ def preprocess_data(today_date):
     input_data = np.array([test_data])
     return input_data, scaler
 
+@app.route('/test', methods=['GET'])
+def test():
+    return "Hello World!"
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -55,4 +60,4 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(port=8000, debug=True)
