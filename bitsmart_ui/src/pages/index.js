@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import { Button } from "@mui/material";
 import Prediction from "./prediction";
-import { useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,6 +11,8 @@ export default function Home() {
   const [prediction, setPrediction] = useState(false);
   const [date, setDate] = useState("");
   const [result, setResult] = useState(null);
+  const [skeleton, setSkeleton] = useState(false);
+  const initMount = useRef(true);
 
   const handleDateChange = (e) => {
     setDate(e.target.value);
@@ -18,6 +20,7 @@ export default function Home() {
 
   const handlePredict = async () => {
     if (date) {
+      setSkeleton(true);
       console.log(date);
       try {
         const response = await fetch("https://bitsmart-backend-2b0b46a4c9ee.herokuapp.com/predict", {
@@ -38,8 +41,19 @@ export default function Home() {
       } catch (error) {
         console.error("Error:", error);
       }
+    } else {
+      alert("You must input a date!");
     }
   };
+
+  // Skeleton for loading prediction results
+  useEffect(() => {
+    if (initMount.current) {
+      initMount.current = false;
+    } else {
+      setSkeleton(false);
+    }
+  }, [result]);
 
   return (
     <>
@@ -65,6 +79,8 @@ export default function Home() {
         <br />
         <br />
 
+        {skeleton && <div>Loading...</div>}
+
         {prediction && result && (
           <>
             <div>
@@ -73,6 +89,7 @@ export default function Home() {
               <p>Lowest Price: {result.lowest_price}</p>
               <p>Average Closing Price: {result.avg_closing_price}</p>
             </div>
+            <br />
             <div>
               <h2 style={{ marginBottom: "0.25em" }}>Recommended swing trading strategy:</h2>
               <p>Sell All: {result.sell_date}</p>
