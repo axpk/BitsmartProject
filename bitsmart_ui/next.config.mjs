@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: "/BitsmartProject",
+  // basePath: "/BitsmartProject",
   output: "export", // static exports
   reactStrictMode: true,
 };
