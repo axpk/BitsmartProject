@@ -9,9 +9,34 @@ const inter = Inter({ subsets: ["latin"] });
 
 export default function Home() {
   const [prediction, setPrediction] = useState(false);
-  const handlePredict = () => {
-    if (!prediction) {
-      setPrediction(true);
+  const [date, setDate] = useState("");
+  const [result, setResult] = useState(null);
+
+  const handleDateChange = (e) => {
+    setDate(e.target.value);
+  };
+
+  const handlePredict = async () => {
+    if (date) {
+      try {
+        const response = await fetch("http://localhost:5000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ date }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setResult(data);
+          setPrediction(true);
+        } else {
+          console.error("Error: " + response.statusText);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
     }
   };
 
@@ -29,7 +54,7 @@ export default function Home() {
         </div>
         <div className={styles.description}>
           <p>
-            Assume today's date is: <input type="date" />
+            Assume today's date is: <input type="date" onChange={handleDateChange} />
           </p>
         </div>
         <br />
@@ -38,7 +63,14 @@ export default function Home() {
         </Button>
         <br />
         <br />
-        {prediction ? <Prediction /> : <></>}
+
+        {prediction && result && (
+          <div>
+            <p>Highest Price: {result.highest_price}</p>
+            <p>Lowest Price: {result.lowest_price}</p>
+            <p>Average Closing Price: {result.avg_closing_price}</p>
+          </div>
+        )}
       </main>
     </>
   );
