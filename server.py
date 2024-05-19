@@ -74,7 +74,7 @@ def predict():
             if sold_index >= 6:
                 load_date = "NA"
             else:
-                lowest_avg_date_index = np.argmin(future_pred[sold_index:, 2])
+                lowest_avg_date_index = np.argmin(future_pred[sold_index + 1:, 2]) + sold_index + 1  # Offset by first slice of array
                 load_date = (datetime.strptime(today_date, '%Y-%m-%d') + timedelta(days=int(lowest_avg_date_index))).strftime('%Y-%m-%d')
 
         # If sell_date was never set
