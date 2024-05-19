@@ -18,13 +18,18 @@ from tensorflow.keras.layers import Dense
 from keras.layers import GlobalAveragePooling1D
 import yfinance as yf
 
+train_data = yf.download('BTC-USD', start="2014-09-17", end="2024-05-19")
+
 data = yf.download('BTC-USD', start="2014-09-17", end="2024-" + input())
 
-data = data[['High', 'Low', 'Close']].values
-
-train_size = len(data) - 59
 scaler = MinMaxScaler()
-scaler.fit(data[0:train_size,:])
+data_scaled = scaler.fit_transform(train_data[['High', 'Low', 'Close']].values)
+
+# train_size = len(data) - 59
+# scaler = MinMaxScaler()
+# scaler.fit(data[0:train_size,:])
+
+data = data[['High', 'Low', 'Close']].values
 
 test_data = scaler.transform(data[-30:,:])
 
